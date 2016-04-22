@@ -1,0 +1,111 @@
+
+
+group 'com.woowahan.sample'
+version '0.1-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+
+//java tomcat에 사용하기 위해 war 파일 형태로 만
+apply plugin: 'war'
+
+description 'Spring + Jpa + Hibernate + Swagger2 + Gradle를 이용한 기본 샘플 프로젝트'
+
+compileJava.options.encoding = 'UTF-8'
+
+repositories {
+    mavenCentral()
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+dependencies {
+    //Spring 관련 라이브러리. 얘네들이 boot에선 boot starter 안에 대부분 포함 됨.
+    compile 'org.springframework:spring-context:4.2.5.RELEASE'
+    compile 'org.springframework:spring-webmvc:4.2.5.RELEASE'
+    compile 'org.springframework:spring-context-support:4.2.5.RELEASE'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.7.3'
+    compile 'org.springframework:spring-aspects:4.2.5.RELEASE'
+
+    //Spring Jpa 라이브러리. 얘는 Spring에도 별도 라이브러리로 있음.
+    compile 'org.springframework.data:spring-data-jpa:1.10.1.RELEASE'
+
+
+    //도메인 모델을 만들 때 코드량이 줄어들고 Hibernate를 위한 몇가지 도움을 준다.
+    compile 'org.projectlombok:lombok:1.16.2'
+    //구글에서 만든 각종 유틸이 있는 라이브러리 가능한 얘네 라이브러리를 이용하자.
+    compile 'com.google.guava:guava:19.0'
+
+    //시간 관련 String to Date or Date to String 파싱을 위한 라이브러리 (블로그에 돌아다니는 SimpleDateFormat은 쓰면 안되요!)
+    compile 'joda-time:joda-time:2.9.1'
+
+    //로그를 남기기 위한 라이브러리
+    compile 'org.slf4j:slf4j-api:1.7.13'
+
+    //얘는 라이브러리 중에 로깅을 남기는 log4j라는 애의 호환성을 맞춰주기 위해서 사용한다 (개발자가 딱히 뭐 건들일 것은 없음)
+    compile 'org.slf4j:log4j-over-slf4j:1.7.13'
+
+    //logback을 이용할 때 기존 slf4j api 라이브러리의 의존성을 제거함.
+    compile ('ch.qos.logback:logback-classic:1.1.3') {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+
+    //Hibernate를 사용하기 위한 라이브러리들
+    compile 'org.hibernate:hibernate-core:5.1.0.Final'
+    compile 'org.hibernate:hibernate-entitymanager:5.1.0.Final'
+    compile 'org.hibernate:hibernate-validator:5.2.4.Final'
+
+    //원래 Spring에서 직접 Servlet을 컨트롤하고 개발자는 손 안대도 되는데 몇가지 설정을 하기 위해서 별도 라이브러리 추가
+    compile 'javax.servlet:javax.servlet-api:3.1.0'
+
+
+
+    //테스트 케이스를 위한 라이브러리륻
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    testCompile 'org.springframework:spring-test:4.1.5.RELEASE'
+
+    //로그 필터를 위해 사용
+    compile 'commons-io:commons-io:2.4'
+
+    //Spring의 데이터소스를 쓰지 않고 별도 데이터소스를 사용한다 (성능면에서 우수한 걸로 사용하면 되며 BoneCP보다 빠르다.)
+    compile 'com.zaxxer:HikariCP:2.4.2'
+
+
+    //테스트에 사용 할 h2 DB
+    compile 'com.h2database:h2:1.4.190'
+
+    //스웨거를 이용해서 API Doc을 만든다.
+    compile 'io.springfox:springfox-swagger2:2.2.2'
+    compile 'io.springfox:springfox-swagger-ui:2.2.2'
+
+
+
+}
+
+
+//빌드를 할 때 profile을 지정해서 빌드 할 수 있도록 하는 세팅이다.
+final String DEFAULT_PROFILE = 'local'
+
+if (!project.hasProperty('profile') || !profile) {
+    ext.profile = DEFAULT_PROFILE
+}
+
+println 'deploy target profile: ' + project.property('profile')
+
+sourceSets {
+    test {
+        //noinspection GroovyAssignabilityCheck
+        resources {
+            srcDir "src/test/resources"
+        }
+    }
+
+    main {
+        //noinspection GroovyAssignabilityCheck
+        resources {
+            srcDir "src/main/resources/${profile}"
+        }
+    }
+}
